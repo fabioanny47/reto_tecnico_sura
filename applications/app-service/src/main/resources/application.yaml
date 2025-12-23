@@ -1,0 +1,29 @@
+## Spring Configuration
+
+logging:
+  level:
+    root: INFO
+
+test:
+  loaded: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  r2dbc:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:usersdb}
+    username: ${DB_USER:user}
+    password: ${DB_PASSWORD:password}
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+  flyway:
+    enabled: true
+    url:  ${DB_HOST:localhost}
+    user: ${DB_USER:user}
+    password: ${DB_PASSWORD:password}
+    locations: classpath:db/migration
