@@ -119,7 +119,7 @@ public class PolicyController {
                 .body(new SuccessResponse(POLICY_CREATED_SUCCESS))
         );
     }
-
+// no documentacion en el codigo
     @Operation(
             summary = "Actualizar póliza",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
