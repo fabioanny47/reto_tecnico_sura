@@ -1,6 +1,7 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
+	implementation project(':rabbit-mq')
 	implementation project(':entry-point')
 	implementation 'org.reactivecommons.utils:object-mapper:0.1.0'
 	implementation project(':r2dbc-postgresql')

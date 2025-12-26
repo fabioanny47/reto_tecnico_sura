@@ -1,5 +1,7 @@
 ## Spring Configuration
 
+
+
 logging:
   level:
     root: INFO
@@ -11,6 +13,10 @@ server:
   port: ${SERVER_PORT:8080}
 
 spring:
+
+  application:
+    name: policy-service
+
   r2dbc:
     host: ${DB_HOST:localhost}
     port: ${DB_PORT:5432}
@@ -27,3 +33,4 @@ spring:
     user: ${DB_USER:user}
     password: ${DB_PASSWORD:password}
     locations: classpath:db/migration
+

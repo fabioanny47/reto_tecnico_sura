@@ -24,3 +24,5 @@ include ':r2dbc-postgresql'
 project(':r2dbc-postgresql').projectDir = file('./infrastructure/driven-adapters/r2dbc-postgresql')
 include ':entry-point'
 project(':entry-point').projectDir = file('./infrastructure/entry-points/entry-point')
+include ':rabbit-mq'
+project(':rabbit-mq').projectDir = file('./infrastructure/driven-adapters/rabbit-mq')

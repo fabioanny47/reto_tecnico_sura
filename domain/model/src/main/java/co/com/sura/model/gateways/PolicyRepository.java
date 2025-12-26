@@ -10,6 +10,6 @@ public interface PolicyRepository {
     Flux<Policy> findAll();
     Mono<Policy> save(Policy policy);
     Mono<Policy> findById(UUID id);
-    Mono<Policy> deleteById(UUID id);
+    Mono<Void> deleteById(UUID id);
 
 }

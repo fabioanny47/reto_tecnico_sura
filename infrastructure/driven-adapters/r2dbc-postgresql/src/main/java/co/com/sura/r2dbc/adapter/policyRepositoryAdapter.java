@@ -5,9 +5,12 @@ import co.com.sura.model.gateways.PolicyRepository;
 import co.com.sura.r2dbc.entity.PolicyEntity;
 import co.com.sura.r2dbc.exception.DatabaseConnectionException;
 import co.com.sura.r2dbc.exception.NotFoundException;
-import io.r2dbc.spi.R2dbcTimeoutException;
-import io.r2dbc.spi.R2dbcTransientException;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import co.com.sura.r2dbc.repository.R2dbcPolicyRepository;
@@ -39,7 +42,7 @@ public class policyRepositoryAdapter implements PolicyRepository{
         return repository.save(toEntity(policy))
                 .map(this::toDomain)
                 .onErrorMap(ex -> {
-                    if (ex instanceof R2dbcTimeoutException || ex instanceof R2dbcTransientException) {
+                    if (ex instanceof DataAccessResourceFailureException || ex instanceof DataAccessResourceFailureException) {
                         return new DatabaseConnectionException(ex);
                     }
                     return ex;
@@ -60,15 +63,15 @@ public class policyRepositoryAdapter implements PolicyRepository{
     }
 
     @Override
-    public Mono<Policy> deleteById(UUID id) {
+    public Mono<Void> deleteById(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new NotFoundException("La politica que intenta eliminar no existe")))
                 .flatMap(policy ->
                         repository.deleteById(policy.getId())
-                                .thenReturn(toDomain(policy))
                 )
                 .onErrorMap(ex -> {
-                    if (ex instanceof R2dbcTimeoutException || ex instanceof R2dbcTransientException) {
+                    System.out.print(ex);
+                    if (ex instanceof DataAccessResourceFailureException || ex instanceof DataAccessResourceFailureException) {
                         return new DatabaseConnectionException(ex);
                     }
                     return ex;
