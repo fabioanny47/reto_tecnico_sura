@@ -1,9 +1,9 @@
 package co.com.sura.rabbitmq;
 
 import co.com.sura.model.events.gateways.EventPublisher;
+import co.com.sura.rabbitmq.config.RabbitMQConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import events.DomainEvent;
-import co.com.sura.rabbitmq.config.RabbitMQConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class RabbitMQPublisher implements EventPublisher {
                         payload
                 );
             } catch (Exception e) {
-                throw new RuntimeException("Error publishing event", e);
+                throw new RuntimeException("Error publicando evento", e);
             }
         });
     }

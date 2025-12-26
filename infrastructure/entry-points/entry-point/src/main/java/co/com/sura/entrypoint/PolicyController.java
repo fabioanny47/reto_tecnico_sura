@@ -1,7 +1,8 @@
 package co.com.sura.entrypoint;
 
-import co.com.sura.entrypoint.mapper.CreatePolicyRequest;
-import co.com.sura.entrypoint.mapper.UpdatePolicyRequest;
+import co.com.sura.dto.CreatePolicyRequest;
+import co.com.sura.dto.SuccessResponse;
+import co.com.sura.dto.UpdatePolicyRequest;
 import co.com.sura.exception.ErrorResponse;
 import co.com.sura.model.policy.Policy;
 import co.com.sura.usecase.policy.*;
@@ -12,11 +13,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.UUID;
-import static reactor.netty.http.HttpConnectionLiveness.log;
+
+import static co.com.sura.constants.PolicyResponseMessages.*;
 
 @RestController
 @RequestMapping("/api/policy")
@@ -68,8 +73,12 @@ public class PolicyController {
             )
     })
     @DeleteMapping("/policy/{id}")
-    public Mono<Void> deletePolicyById(@PathVariable("id") UUID id) {
-        return deletePolicyUseCase.execute(id);
+    public Mono<ResponseEntity<SuccessResponse>> deletePolicyById(@PathVariable("id") UUID id) {
+        return deletePolicyUseCase.execute(id) .then(Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new SuccessResponse(POLICY_DELETED_SUCCESS))
+        ));
     }
 
     @Operation(
@@ -96,16 +105,19 @@ public class PolicyController {
             )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "politica creada con exito")
+            @ApiResponse(responseCode = "201", description = "politica creada con exitosamente")
     })
     @PostMapping("/policy")
-    public Mono<Policy> createPolicy(@RequestBody CreatePolicyRequest request) {
-        log.info("Request: {}", request);
-        return createPoliciesUseCase.execute( Policy.builder()
+    public Mono<ResponseEntity<SuccessResponse>>  createPolicy(@RequestBody CreatePolicyRequest request) {
+        return createPoliciesUseCase.execute(Policy.builder()
                 .policyId(request.policyId())
                 .amount(request.amount())
                 .fechaInicio(request.fechaInicio())
-                .type(request.type()).build());
+                .type(request.type()).build())
+                .map(saved -> ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new SuccessResponse(POLICY_CREATED_SUCCESS))
+        );
     }
 
     @Operation(
@@ -132,16 +144,19 @@ public class PolicyController {
             )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "politica actaulizada con exito")
+            @ApiResponse(responseCode = "200", description = "Politica actualizada exitosamente")
     })
     @PutMapping("/policy")
-    public Mono<Policy> updatePolicy(@RequestBody UpdatePolicyRequest request) {
-        log.info("Request: {}", request);
-        return updatePolicyUseCase.execute( Policy.builder()
+    public Mono<ResponseEntity<SuccessResponse>> updatePolicy(@RequestBody UpdatePolicyRequest request) {
+        return updatePolicyUseCase.execute(Policy.builder()
                 .id(request.id())
                 .policyId(request.policyId())
                 .amount(request.amount())
                 .fechaInicio(request.fechaInicio())
-                .type(request.type()).build());
+                .type(request.type()).build())
+                .map(saved -> ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new SuccessResponse(POLICY_UPDATED_SUCCESS))
+                );
     }
 }

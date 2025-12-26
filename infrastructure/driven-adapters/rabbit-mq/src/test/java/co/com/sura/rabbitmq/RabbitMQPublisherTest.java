@@ -12,7 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import reactor.test.StepVerifier;
+
 import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -58,7 +60,7 @@ class RabbitMQPublisherTest {
         StepVerifier.create(rabbitMQPublisher.publish(event))
                 .expectErrorMatches(throwable ->
                         throwable instanceof RuntimeException &&
-                                throwable.getMessage().contains("Error publishing event")
+                                throwable.getMessage().contains("Error publicando evento")
                 )
                 .verify();
 

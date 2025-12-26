@@ -1,6 +1,9 @@
 package co.com.sura.model.policy;
+
 import co.com.sura.model.enums.PolicyTypes;
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;

@@ -1,39 +1,45 @@
 package co.com.sura.entrypoint;
 
-import co.com.sura.entrypoint.mapper.CreatePolicyRequest;
-import co.com.sura.entrypoint.mapper.UpdatePolicyRequest;
+import co.com.sura.dto.CreatePolicyRequest;
+import co.com.sura.dto.UpdatePolicyRequest;
 import co.com.sura.model.enums.PolicyTypes;
 import co.com.sura.model.policy.Policy;
+import co.com.sura.r2dbc.exception.NotFoundException;
+import co.com.sura.r2dbc.exception.ValidationException;
 import co.com.sura.usecase.policy.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+
+import static co.com.sura.constants.PolicyResponseMessages.*;
 import static org.mockito.ArgumentMatchers.any;
-import static reactor.core.publisher.Mono.when;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PolicyControllerTest {
 
     @Mock
-    GetAllPoliciesUseCase getAllPoliciesUseCase;
+    private GetAllPoliciesUseCase getAllPoliciesUseCase;
     @Mock
-    FindPolicyByIdUseCase findPolicyByIdUseCase;
+    private FindPolicyByIdUseCase findPolicyByIdUseCase;
     @Mock
-    DeletePolicyUseCase deletePolicyUseCase;
+    private DeletePolicyUseCase deletePolicyUseCase;
     @Mock
-    CreatePolicyUseCase createPoliciesUseCase;
+    private CreatePolicyUseCase createPoliciesUseCase;
     @Mock
-    UpdatePolicyUseCase updatePolicyUseCase;
+    private UpdatePolicyUseCase updatePolicyUseCase;
 
-    PolicyController controller;
+    private PolicyController controller;
 
     @BeforeEach
     void setUp() {
@@ -60,6 +66,14 @@ class PolicyControllerTest {
     }
 
     @Test
+    void getAllPolicies_empty() {
+        when(getAllPoliciesUseCase.execute()).thenReturn(Flux.empty());
+
+        StepVerifier.create(controller.getAllPolicies())
+                .verifyComplete();
+    }
+
+    @Test
     void findPolicyById_success() {
         UUID id = UUID.randomUUID();
         Policy policy = Policy.builder().id(id).policyId("POL-1").build();
@@ -78,7 +92,7 @@ class PolicyControllerTest {
         when(findPolicyByIdUseCase.execute(id)).thenReturn(Mono.empty());
 
         StepVerifier.create(controller.findPolicyById(id))
-                .verifyComplete(); // Devuelve Mono vacío
+                .verifyComplete();
     }
 
     @Test
@@ -88,29 +102,68 @@ class PolicyControllerTest {
         when(deletePolicyUseCase.execute(id)).thenReturn(Mono.empty());
 
         StepVerifier.create(controller.deletePolicyById(id))
+                .expectNextMatches(response ->
+                        response.getStatusCode() == HttpStatus.OK &&
+                                response.getBody() != null &&
+                                POLICY_DELETED_SUCCESS.equals(response.getBody().message())
+                )
                 .verifyComplete();
     }
 
     @Test
     void createPolicy_success() {
-        CreatePolicyRequest request = new CreatePolicyRequest("POL-123", PolicyTypes.AUTO, LocalDate.now(), BigDecimal.valueOf(1000));
+        CreatePolicyRequest request = new CreatePolicyRequest(
+                "POL-123",
+                PolicyTypes.AUTO,
+                LocalDate.now(),
+                BigDecimal.valueOf(1000)
+        );
+
         Policy savedPolicy = Policy.builder()
                 .policyId(request.policyId())
                 .amount(request.amount())
                 .fechaInicio(request.fechaInicio())
                 .type(request.type())
                 .build();
-
         when(createPoliciesUseCase.execute(any(Policy.class))).thenReturn(Mono.just(savedPolicy));
 
         StepVerifier.create(controller.createPolicy(request))
-                .expectNext(savedPolicy)
+                .expectNextMatches(response ->
+                        response.getStatusCode() == HttpStatus.CREATED &&
+                                response.getBody() != null &&
+                                POLICY_CREATED_SUCCESS.equals(response.getBody().message())
+                )
                 .verifyComplete();
+    }
+
+
+    @Test
+    void createPolicy_validationError() {
+        CreatePolicyRequest request = new CreatePolicyRequest(
+                "POL-123",
+                PolicyTypes.AUTO,
+                LocalDate.now(),
+                BigDecimal.ZERO
+        );
+
+        when(createPoliciesUseCase.execute(any(Policy.class)))
+                .thenReturn(Mono.error(new ValidationException("Monto inválido")));
+
+        StepVerifier.create(controller.createPolicy(request))
+                .expectError(ValidationException.class)
+                .verify();
     }
 
     @Test
     void updatePolicy_success() {
-        UpdatePolicyRequest request = new UpdatePolicyRequest(UUID.randomUUID(), "POL-123", PolicyTypes.AUTO, LocalDate.now(), BigDecimal.valueOf(2000));
+        UpdatePolicyRequest request = new UpdatePolicyRequest(
+                UUID.randomUUID(),
+                "POL-123",
+                PolicyTypes.AUTO,
+                LocalDate.now(),
+                BigDecimal.valueOf(2000)
+        );
+
         Policy updatedPolicy = Policy.builder()
                 .id(request.id())
                 .policyId(request.policyId())
@@ -122,7 +175,48 @@ class PolicyControllerTest {
         when(updatePolicyUseCase.execute(any(Policy.class))).thenReturn(Mono.just(updatedPolicy));
 
         StepVerifier.create(controller.updatePolicy(request))
-                .expectNext(updatedPolicy)
+                .expectNextMatches(response ->
+                        response.getStatusCode() == HttpStatus.OK &&
+                                response.getBody() != null &&
+                                POLICY_UPDATED_SUCCESS.equals(response.getBody().message())
+                )
                 .verifyComplete();
+    }
+
+
+    @Test
+    void updatePolicy_validationError() {
+        UpdatePolicyRequest request = new UpdatePolicyRequest(
+                UUID.randomUUID(),
+                "POL-123",
+                PolicyTypes.AUTO,
+                LocalDate.now(),
+                BigDecimal.ZERO
+        );
+
+        when(updatePolicyUseCase.execute(any(Policy.class)))
+                .thenReturn(Mono.error(new ValidationException("Monto inválido")));
+
+        StepVerifier.create(controller.updatePolicy(request))
+                .expectError(ValidationException.class)
+                .verify();
+    }
+
+    @Test
+    void updatePolicy_notFound() {
+        UpdatePolicyRequest request = new UpdatePolicyRequest(
+                UUID.randomUUID(),
+                "POL-123",
+                PolicyTypes.AUTO,
+                LocalDate.now(),
+                BigDecimal.valueOf(1000)
+        );
+
+        when(updatePolicyUseCase.execute(any(Policy.class)))
+                .thenReturn(Mono.error(new NotFoundException("Policy no encontrada")));
+
+        StepVerifier.create(controller.updatePolicy(request))
+                .expectError(NotFoundException.class)
+                .verify();
     }
 }

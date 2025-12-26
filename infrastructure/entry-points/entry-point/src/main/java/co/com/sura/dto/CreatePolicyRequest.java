@@ -1,6 +1,7 @@
-package co.com.sura.entrypoint.mapper;
+package co.com.sura.dto;
 
 import co.com.sura.model.enums.PolicyTypes;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 

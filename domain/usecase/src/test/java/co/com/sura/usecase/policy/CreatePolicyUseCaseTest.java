@@ -13,9 +13,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +76,7 @@ class CreatePolicyUseCaseTest {
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof EventPublishingException &&
-                        throwable.getMessage().contains("No se pudo emitir el evento de creación de Policy"))
+                        throwable.getMessage().contains("No se pudo emitir el evento de creación de Politica"))
                 .verify();
     }
 

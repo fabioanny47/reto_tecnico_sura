@@ -1,19 +1,15 @@
 package co.com.sura.r2dbc.adapter;
 
-import co.com.sura.model.policy.Policy;
 import co.com.sura.model.gateways.PolicyRepository;
+import co.com.sura.model.policy.Policy;
 import co.com.sura.r2dbc.entity.PolicyEntity;
 import co.com.sura.r2dbc.exception.DatabaseConnectionException;
 import co.com.sura.r2dbc.exception.NotFoundException;
-import jakarta.annotation.PostConstruct;
+import co.com.sura.r2dbc.repository.R2dbcPolicyRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
-import co.com.sura.r2dbc.repository.R2dbcPolicyRepository;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
